@@ -49,9 +49,6 @@ class PayPy:
                 print(f"Error in task: {e}")
             self._tasks.task_done()
 
-    async def __schedule(self, coro_func, *args, **kwargs):
-        await self._tasks.put((coro_func, args, kwargs))
-
     async def run(self):
         self._running = True
 
