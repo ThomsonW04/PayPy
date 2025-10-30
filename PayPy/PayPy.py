@@ -15,10 +15,10 @@ class PayPy:
         self.__dev_mode = dev_mode
 
     async def __get_base_url(self):
-        if self.dev_mode:
-            return "https://api-m.sandbox.paypal.com/v2/invoicing/invoices"
+        if self.__dev_mode:
+            return "https://api-m.sandbox.paypal.com"
         else:
-            return "https://api-m.paypal.com/v2/invoicing/invoices"
+            return "https://api-m.paypal.com"
         
     async def __get_api_token(self):
         auth = base64.b64encode(f"{self.__client_id}:{self.__client_secret}".encode()).decode()
@@ -30,12 +30,12 @@ class PayPy:
         
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{self.__get_base_url()}/oauth2/token",
+                f"{await self.__get_base_url()}/v1/oauth2/token",
                 headers=headers,
                 data=data
             )
             response.raise_for_status()
-            return (await response.json())["access_token"]
+            return response.json()["access_token"]
         
     async def login(self):
         self.__api_token = await self.__get_api_token()
