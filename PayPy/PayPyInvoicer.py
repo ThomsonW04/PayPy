@@ -22,7 +22,8 @@ class PayPyInvoicer:
                              note: str = None, 
                              term: str = None, 
                              memo: str = None,
-                             payment_term: dict = None):
+                             payment_term: dict = None # Expects dict of term_type and due_date
+                             ):
         
         # Initialise the data dictionary
         data = {}
