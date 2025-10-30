@@ -4,8 +4,6 @@ import asyncio
 
 class PayPy:
     def __init__(self, client_id, client_secret, vendor_given_names, vendor_last_names, vendor_email, currency_code="GBP", dev_mode=False):
-        self.__api_token = None
-
         self.__client_id = client_id
         self.__client_secret = client_secret
         self.__vendor_given_names = vendor_given_names
@@ -14,12 +12,13 @@ class PayPy:
         self.__currency_code = currency_code
         self.__dev_mode = dev_mode
 
+        self.__api_token = None
+        self._tasks = asyncio.Queue()
+        self._running = False
+
     async def __get_base_url(self):
-        if self.__dev_mode:
-            return "https://api-m.sandbox.paypal.com"
-        else:
-            return "https://api-m.paypal.com"
-        
+        return "https://api-m.sandbox.paypal.com" if self.__dev_mode else "https://api-m.paypal.com"
+
     async def __get_api_token(self):
         auth = base64.b64encode(f"{self.__client_id}:{self.__client_secret}".encode()).decode()
         headers = {
@@ -27,7 +26,7 @@ class PayPy:
             "Content-Type": "application/x-www-form-urlencoded"
         }
         data = {"grant_type": "client_credentials"}
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{await self.__get_base_url()}/v1/oauth2/token",
@@ -36,6 +35,38 @@ class PayPy:
             )
             response.raise_for_status()
             return response.json()["access_token"]
-        
-    async def login(self):
+
+    async def __login(self):
         self.__api_token = await self.__get_api_token()
+        print("Logged in successfully!")
+
+    async def __worker(self):
+        while self._running:
+            func, args, kwargs = await self._tasks.get()
+            try:
+                await func(*args, **kwargs)
+            except Exception as e:
+                print(f"Error in task: {e}")
+            self._tasks.task_done()
+
+    async def __schedule(self, coro_func, *args, **kwargs):
+        await self._tasks.put((coro_func, args, kwargs))
+
+    async def run(self):
+        self._running = True
+
+        worker_task = asyncio.create_task(self.__worker())
+
+        await self.__login()
+
+        print("PayPy is running. Press Ctrl+C to exit.")
+
+        try:
+            while True:
+                await asyncio.sleep(1)
+        except asyncio.CancelledError:
+            print("Shutting down...")
+            self._running = False
+            worker_task.cancel()
+            await worker_task
+
