@@ -4,7 +4,7 @@ import asyncio
 
 class PayPy:
     def __init__(self, client_id, client_secret, vendor_given_names, vendor_last_names, vendor_email, currency_code="GBP", dev_mode=False):
-        self.api_token = None
+        self.__api_token = None
 
         self.__client_id = client_id
         self.__client_secret = client_secret
@@ -36,3 +36,6 @@ class PayPy:
             )
             response.raise_for_status()
             return (await response.json())["access_token"]
+        
+    async def login(self):
+        self.__api_token = await self.__get_api_token()
