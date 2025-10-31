@@ -3,7 +3,11 @@ import httpx
 class PayPyInvoicer:
     def __init__(self, base_url, auth_token):
         self.__base_url = base_url
-        self.__auth_token = auth_token
+        self.__headers = {
+            'Authorization': f'Bearer {auth_token}',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+        }
 
     async def __get_next_invoice_number(self):
         async with httpx.AsyncClient() as client:
@@ -113,4 +117,12 @@ class PayPyInvoicer:
         if amount_breakdown:
             data["amount"] = {"breakdown": amount_breakdown}
 
-        
+        # Create the invoice
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.__base_url}/v2/invoicing/invoices",
+                headers=self.headers,
+                data=data
+            )
+            return response.json()

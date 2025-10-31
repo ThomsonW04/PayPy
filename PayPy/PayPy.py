@@ -5,13 +5,9 @@ from .PayPyInvoicer import PayPyInvoicer
 
 
 class PayPy(PayPyInvoicer):
-    def __init__(self, client_id, client_secret, vendor_given_names, vendor_last_names, vendor_email, currency_code="GBP", dev_mode=False):
+    def __init__(self, client_id, client_secret, dev_mode=False):
         self.__client_id = client_id
         self.__client_secret = client_secret
-        self.__vendor_given_names = vendor_given_names
-        self.__vendor_last_names = vendor_last_names
-        self.__vendor_email = vendor_email
-        self.__currency_code = currency_code
         self.__dev_mode = dev_mode
 
         self.__api_token = None
@@ -64,7 +60,7 @@ class PayPy(PayPyInvoicer):
             return
         try:
             print("Initialising the rest of PayPy!")
-            PayPyInvoicer.__init__(self, self.__get_base_url(), self.__api_token)
+            PayPyInvoicer.__init__(self, self.__get_base_url(), self.__api_token, currency_code)
             print("Successfully initialised the rest of PayPy!")
         except Exception as e:
             print(f"Failed to initialise: {str(e)}")
