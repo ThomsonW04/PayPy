@@ -1,8 +1,10 @@
 import base64
 import httpx
 import asyncio
+from .PayPyInvoicer import PayPyInvoicer
 
-class PayPy:
+
+class PayPy(PayPyInvoicer):
     def __init__(self, client_id, client_secret, vendor_given_names, vendor_last_names, vendor_email, currency_code="GBP", dev_mode=False):
         self.__client_id = client_id
         self.__client_secret = client_secret
@@ -16,7 +18,7 @@ class PayPy:
         self._tasks = asyncio.Queue()
         self._running = False
 
-    async def __get_base_url(self):
+    def __get_base_url(self):
         return "https://api-m.sandbox.paypal.com" if self.__dev_mode else "https://api-m.paypal.com"
 
     async def __get_api_token(self):
@@ -29,7 +31,7 @@ class PayPy:
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{await self.__get_base_url()}/v1/oauth2/token",
+                f"{self.__get_base_url()}/v1/oauth2/token",
                 headers=headers,
                 data=data
             )
@@ -37,8 +39,18 @@ class PayPy:
             return response.json()["access_token"]
 
     async def __login(self):
-        self.__api_token = await self.__get_api_token()
-        print("Logged in successfully!")
+        print("Attempting Login!")
+        try:
+            self.__api_token = await self.__get_api_token()
+            print("Login Successful!")
+        except Exception as e:
+            print(f"Failed to login: {str(e)}")
+        try:
+            print("Initialising the rest of PayPy!")
+            PayPyInvoicer.__init__(self, self.__get_base_url(), self.__api_token)
+            print("Successfully initialised the rest of PayPy!")
+        except Exception as e:
+            print(f"Failed to initialise: {str(e)}")
 
     async def __worker(self):
         while self._running:

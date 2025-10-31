@@ -1,9 +1,9 @@
 import httpx
 
 class PayPyInvoicer:
-    def __init__(self, base_url, headers):
+    def __init__(self, base_url, auth_token):
         self.__base_url = base_url
-        self.__headers = headers
+        self.__auth_token = auth_token
 
     async def __get_next_invoice_number(self):
         async with httpx.AsyncClient() as client:
@@ -112,3 +112,5 @@ class PayPyInvoicer:
 
         if amount_breakdown:
             data["amount"] = {"breakdown": amount_breakdown}
+
+        
