@@ -40,7 +40,6 @@ class PayPy(PayPyInvoicer):
 
     async def __login(self):
         self.__api_token = await self.__get_api_token()
-        print("Logged in successfully!")
 
     async def __worker(self):
         while self._running:
