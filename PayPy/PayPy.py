@@ -39,18 +39,8 @@ class PayPy(PayPyInvoicer):
             return response.json()["access_token"]
 
     async def __login(self):
-        print("Attempting Login!")
-        try:
-            self.__api_token = await self.__get_api_token()
-            print("Login Successful!")
-        except Exception as e:
-            print(f"Failed to login: {str(e)}")
-        try:
-            print("Initialising the rest of PayPy!")
-            PayPyInvoicer.__init__(self, self.__get_base_url(), self.__api_token)
-            print("Successfully initialised the rest of PayPy!")
-        except Exception as e:
-            print(f"Failed to initialise: {str(e)}")
+        self.__api_token = await self.__get_api_token()
+        print("Logged in successfully!")
 
     async def __worker(self):
         while self._running:
@@ -66,7 +56,20 @@ class PayPy(PayPyInvoicer):
 
         worker_task = asyncio.create_task(self.__worker())
 
-        await self.__login()
+        print("Attempting Login!")
+        try:
+            await self.__login()
+            print("Login Successful!")
+        except Exception as e:
+            print(f"Failed to login: {str(e)}")
+            return
+        try:
+            print("Initialising the rest of PayPy!")
+            PayPyInvoicer.__init__(self, self.__get_base_url(), self.__api_token)
+            print("Successfully initialised the rest of PayPy!")
+        except Exception as e:
+            print(f"Failed to initialise: {str(e)}")
+            return
 
         print("PayPy is running. Press Ctrl+C to exit.")
 
